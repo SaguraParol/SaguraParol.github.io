@@ -386,6 +386,7 @@
         ];
 
         let currentFactIndex = 0;
+        let currentPassword = ""; // переменная для хранения текущего пароля
 
         function updateRandomFact() {
             let newIndex;
@@ -473,16 +474,24 @@
             }
         }
 
-        function refresh() {
+        // Обновление отображения длины (только цифры, без генерации пароля)
+        function updateLengthDisplay() {
+            lengthSpan.innerText = lengthSlider.value;
+        }
+
+        // Основная функция создания пароля — вызывается ТОЛЬКО по кнопке
+        function generateAndDisplay() {
             const pool = getCharacterPool();
             if (pool.length === 0) {
                 passwordDiv.innerText = '⚠️ Выберите хотя бы один тип символов';
                 strengthDiv.className = 'strength-meter weak';
                 strengthDiv.innerHTML = '❌ Нет доступных символов для создания пароля';
+                currentPassword = '';
                 return;
             }
 
             const newPwd = generateSecure();
+            currentPassword = newPwd;
             passwordDiv.innerText = newPwd;
             const length = parseInt(lengthSlider.value, 10);
             const poolSize = pool.length;
@@ -496,8 +505,8 @@
 
         async function copyPassword() {
             const text = passwordDiv.innerText;
-            if (!text || text.includes('⚠️') || text.includes('Выберите')) {
-                alert('Не удалось скопировать: пароль не создан');
+            if (!text || text.includes('⚠️') || text.includes('Выберите') || text === '··········') {
+                alert('Нечего копировать. Сначала создайте пароль, нажав «Создать пароль».');
                 return;
             }
             try {
@@ -512,24 +521,22 @@
             }
         }
 
-        function updateLengthDisplay() {
-            lengthSpan.innerText = lengthSlider.value;
-            refresh();
-        }
-
-        // обработчики
-        genBtn.addEventListener('click', refresh);
+        // обработчики событий
+        genBtn.addEventListener('click', generateAndDisplay);
         copyBtn.addEventListener('click', copyPassword);
+        
+        // Ползунок длины ТОЛЬКО меняет цифру, НЕ генерирует пароль
         lengthSlider.addEventListener('input', updateLengthDisplay);
-        upperCheck.addEventListener('change', refresh);
-        lowerCheck.addEventListener('change', refresh);
-        digitCheck.addEventListener('change', refresh);
-        specialCheck.addEventListener('change', refresh);
-        excludeAmb.addEventListener('change', refresh);
+        
+        // Чекбоксы НЕ генерируют пароль автоматически — только сохраняют настройки
+        // (никаких обработчиков на change, которые вызывают генерацию)
 
-        // Инициализация: факт + пароль
+        // Инициализация: показываем заглушку и случайный факт
+        passwordDiv.innerText = '··········';
+        strengthDiv.innerHTML = '🔄 Нажмите «Создать пароль»';
+        strengthDiv.className = 'strength-meter weak';
         updateRandomFact();
-        refresh();
+        updateLengthDisplay();
     })();
 </script>
 </body>
